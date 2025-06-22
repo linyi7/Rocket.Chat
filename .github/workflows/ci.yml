@@ -24,6 +24,9 @@ jobs:
   release-versions:
     name: ⚙️ Variables Setup
     runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      packages: write  # 必须添加
     outputs:
       release: ${{ steps.by-tag.outputs.release }}
       latest-release: ${{ steps.latest.outputs.latest-release }}
