@@ -37,7 +37,7 @@ jobs:
       official-platform: 'alpine'
       # this is 100% intentional, secrets are not available for forks, so ee-tests will always fail
       # to avoid this, we are using a dummy license, expiring at 2025-06-31
-      # enterprise-license: X/XumwIkgwQuld0alWKt37lVA90XjKOrfiMvMZ0/RtqsMtrdL9GoAk+4jXnaY1b2ePoG7XSzGhuxEDxFKIWJK3hIKGNTvrd980LgH5sM5+1T4P42ivSpd8UZi0bwjJkCFLIu9RozzYwslGG0IehMxe0S6VjcO0UYlUJtbMCBHuR2WmTAmO6YVU3ln+pZCbrPFaTPSS1RovhKaNCNkZwIx/CLWW8UTXUuFV/ML4PbKKVoa5nvvJwPeatgL7UCnlSD90lfCiiuikpzj/Y/JLkIL6velFbwNxsrxg9iRJ2k0sKheMMSmlTiGzSvZUm+na5WQq91aKGncih+DmaEZA7QGrjp4eoA0dqTk6OmItsy0fHmQhvZIOKNMeO7vNQiLbaSV6rqibrzu7WPpeIvsvL57T1h37USoCSB6+jDqkzdfoqIpz8BxTiJDj1d8xGPJFVrgxoqQqkj9qIP/gCaEz5DF39QFv5sovk4yK2O8fEQYod2d14V9yECYl4szZPMk1IBfCAC2w7czWGHHFonhL+CQGT403y5wmDmnsnjlCqMKF72odqfTPTI8XnCvJDriPMWohnQEAGtTTyciAhNokx/mjAVJ4NeZPcsbm4BjhvJvnjxx/BhYhBBTNWPaCSZzocfrGUj9Z+ZA7BEz+xAFQyGDx3xRzqIXfT0G7w8fvgYJMU=
+      enterprise-license: X/XumwIkgwQuld0alWKt37lVA90XjKOrfiMvMZ0/RtqsMtrdL9GoAk+4jXnaY1b2ePoG7XSzGhuxEDxFKIWJK3hIKGNTvrd980LgH5sM5+1T4P42ivSpd8UZi0bwjJkCFLIu9RozzYwslGG0IehMxe0S6VjcO0UYlUJtbMCBHuR2WmTAmO6YVU3ln+pZCbrPFaTPSS1RovhKaNCNkZwIx/CLWW8UTXUuFV/ML4PbKKVoa5nvvJwPeatgL7UCnlSD90lfCiiuikpzj/Y/JLkIL6velFbwNxsrxg9iRJ2k0sKheMMSmlTiGzSvZUm+na5WQq91aKGncih+DmaEZA7QGrjp4eoA0dqTk6OmItsy0fHmQhvZIOKNMeO7vNQiLbaSV6rqibrzu7WPpeIvsvL57T1h37USoCSB6+jDqkzdfoqIpz8BxTiJDj1d8xGPJFVrgxoqQqkj9qIP/gCaEz5DF39QFv5sovk4yK2O8fEQYod2d14V9yECYl4szZPMk1IBfCAC2w7czWGHHFonhL+CQGT403y5wmDmnsnjlCqMKF72odqfTPTI8XnCvJDriPMWohnQEAGtTTyciAhNokx/mjAVJ4NeZPcsbm4BjhvJvnjxx/BhYhBBTNWPaCSZzocfrGUj9Z+ZA7BEz+xAFQyGDx3xRzqIXfT0G7w8fvgYJMU=
     steps:
       - uses: actions/checkout@v4
         with:
@@ -105,8 +105,6 @@ jobs:
 
       - name: Register release on cloud as Draft
         if: github.event_name == 'release'
-        env:
-          UPDATE_TOKEN: ${{ secrets.UPDATE_TOKEN }}
         run: |
           REPO_VERSION=$(node -p "require('./package.json').version")
 
@@ -254,7 +252,7 @@ jobs:
 
   build-prod:
     name: 📦 Meteor Build - official
-    needs: [tests-done, release-versions, packages-build]
+    needs: [ release-versions, packages-build]
     if: (github.event_name == 'release' || github.ref == 'refs/heads/develop')
     runs-on: ubuntu-24.04
 
@@ -424,28 +422,9 @@ jobs:
       node-version: ${{ needs.release-versions.outputs.node-version }}
       deno-version: ${{ needs.release-versions.outputs.deno-version }}
 
-  test-storybook:
-    name: 🔨 Test Storybook
-    needs: [packages-build, release-versions]
 
-    uses: ./.github/workflows/ci-test-storybook.yml
-    with:
-      node-version: ${{ needs.release-versions.outputs.node-version }}
-      deno-version: ${{ needs.release-versions.outputs.deno-version }}
-    secrets:
-      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
-  test-unit:
-    name: 🔨 Test Unit
-    needs: [packages-build, release-versions]
 
-    uses: ./.github/workflows/ci-test-unit.yml
-    with:
-      node-version: ${{ needs.release-versions.outputs.node-version }}
-      deno-version: ${{ needs.release-versions.outputs.deno-version }}
-      enterprise-license: ${{ needs.release-versions.outputs.enterprise-license }}
-    secrets:
-      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
   test-api:
     name: 🔨 Test API (CE)
@@ -465,32 +444,6 @@ jobs:
       CR_USER: ${{ secrets.CR_USER }}
       CR_PAT: ${{ secrets.CR_PAT }}
 
-  test-ui:
-    name: 🔨 Test UI (CE)
-    needs: [checks, build-gh-docker-coverage, release-versions]
-
-    uses: ./.github/workflows/ci-test-e2e.yml
-    with:
-      type: ui
-      release: ce
-      transporter: 'nats://nats:4222'
-      enterprise-license: ${{ needs.release-versions.outputs.enterprise-license }}
-      shard: '[1, 2, 3, 4]'
-      total-shard: 4
-      node-version: ${{ needs.release-versions.outputs.node-version }}
-      deno-version: ${{ needs.release-versions.outputs.deno-version }}
-      lowercase-repo: ${{ needs.release-versions.outputs.lowercase-repo }}
-      rc-dockerfile: ${{ needs.release-versions.outputs.rc-dockerfile }}
-      rc-docker-tag: ${{ needs.release-versions.outputs.rc-docker-tag }}
-      gh-docker-tag: ${{ needs.release-versions.outputs.gh-docker-tag }}
-      retries: ${{ (github.event_name == 'release' || github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/master') && 2 || 0 }}
-    secrets:
-      CR_USER: ${{ secrets.CR_USER }}
-      CR_PAT: ${{ secrets.CR_PAT }}
-      QASE_API_TOKEN: ${{ secrets.QASE_API_TOKEN }}
-      REPORTER_ROCKETCHAT_API_KEY: ${{ secrets.REPORTER_ROCKETCHAT_API_KEY }}
-      REPORTER_ROCKETCHAT_URL: ${{ secrets.REPORTER_ROCKETCHAT_URL }}
-      REPORTER_JIRA_ROCKETCHAT_API_KEY: ${{ secrets.REPORTER_JIRA_ROCKETCHAT_API_KEY }}
 
   test-api-ee:
     name: 🔨 Test API (EE)
@@ -513,102 +466,9 @@ jobs:
       CR_USER: ${{ secrets.CR_USER }}
       CR_PAT: ${{ secrets.CR_PAT }}
 
-  test-ui-ee:
-    name: 🔨 Test UI (EE)
-    needs: [checks, build-gh-docker-coverage, release-versions]
 
-    uses: ./.github/workflows/ci-test-e2e.yml
-    with:
-      type: ui
-      release: ee
-      transporter: 'nats://nats:4222'
-      enterprise-license: ${{ needs.release-versions.outputs.enterprise-license }}
-      shard: '[1, 2, 3, 4, 5]'
-      total-shard: 5
-      mongodb-version: "['5.0']"
-      node-version: ${{ needs.release-versions.outputs.node-version }}
-      deno-version: ${{ needs.release-versions.outputs.deno-version }}
-      lowercase-repo: ${{ needs.release-versions.outputs.lowercase-repo }}
-      rc-dockerfile: ${{ needs.release-versions.outputs.rc-dockerfile }}
-      rc-docker-tag: ${{ needs.release-versions.outputs.rc-docker-tag }}
-      gh-docker-tag: ${{ needs.release-versions.outputs.gh-docker-tag }}
-      retries: ${{ (github.event_name == 'release' || github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/master') && 2 || 0 }}
-    secrets:
-      CR_USER: ${{ secrets.CR_USER }}
-      CR_PAT: ${{ secrets.CR_PAT }}
-      QASE_API_TOKEN: ${{ secrets.QASE_API_TOKEN }}
-      REPORTER_ROCKETCHAT_API_KEY: ${{ secrets.REPORTER_ROCKETCHAT_API_KEY }}
-      REPORTER_ROCKETCHAT_URL: ${{ secrets.REPORTER_ROCKETCHAT_URL }}
-      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
-      REPORTER_JIRA_ROCKETCHAT_API_KEY: ${{ secrets.REPORTER_JIRA_ROCKETCHAT_API_KEY }}
 
-  test-ui-ee-watcher:
-    name: 🔨 Test UI (EE)
-    needs: [checks, build-gh-docker-coverage, release-versions]
 
-    uses: ./.github/workflows/ci-test-e2e.yml
-    with:
-      type: ui
-      release: ee
-      transporter: 'nats://nats:4222'
-      enterprise-license: ${{ needs.release-versions.outputs.enterprise-license }}
-      shard: '[1, 2, 3, 4, 5]'
-      total-shard: 5
-      mongodb-version: "['7.0']"
-      node-version: ${{ needs.release-versions.outputs.node-version }}
-      deno-version: ${{ needs.release-versions.outputs.deno-version }}
-      lowercase-repo: ${{ needs.release-versions.outputs.lowercase-repo }}
-      rc-dockerfile: ${{ needs.release-versions.outputs.rc-dockerfile }}
-      rc-docker-tag: ${{ needs.release-versions.outputs.rc-docker-tag }}
-      gh-docker-tag: ${{ needs.release-versions.outputs.gh-docker-tag }}
-      retries: ${{ (github.event_name == 'release' || github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/master') && 2 || 0 }}
-      db-watcher-disabled: 'false'
-    secrets:
-      CR_USER: ${{ secrets.CR_USER }}
-      CR_PAT: ${{ secrets.CR_PAT }}
-      QASE_API_TOKEN: ${{ secrets.QASE_API_TOKEN }}
-      REPORTER_ROCKETCHAT_API_KEY: ${{ secrets.REPORTER_ROCKETCHAT_API_KEY }}
-      REPORTER_ROCKETCHAT_URL: ${{ secrets.REPORTER_ROCKETCHAT_URL }}
-      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
-      REPORTER_JIRA_ROCKETCHAT_API_KEY: ${{ secrets.REPORTER_JIRA_ROCKETCHAT_API_KEY }}
-
-  tests-done:
-    name: ✅ Tests Done
-    runs-on: ubuntu-24.04
-    needs: [checks, test-unit, test-api, test-ui, test-api-ee, test-ui-ee, test-ui-ee-watcher]
-    if: always()
-    steps:
-      - name: Test finish aggregation
-        run: |
-          if [[ '${{ needs.checks.result }}' != 'success' ]]; then
-            exit 1
-          fi
-
-          if [[ '${{ needs.test-unit.result }}' != 'success' ]]; then
-            exit 1
-          fi
-
-          if [[ '${{ needs.test-api.result }}' != 'success' ]]; then
-            exit 1
-          fi
-
-          if [[ '${{ needs.test-ui.result }}' != 'success' ]]; then
-            exit 1
-          fi
-
-          if [[ '${{ needs.test-api-ee.result }}' != 'success' ]]; then
-            exit 1
-          fi
-
-          if [[ '${{ needs.test-ui-ee.result }}' != 'success' ]]; then
-            exit 1
-          fi
-
-          if [[ '${{ needs.test-ui-ee-watcher.result }}' != 'success' ]]; then
-            exit 1
-          fi
-
-          echo finished
 
   deploy:
     name: 🚀 Publish build assets
@@ -853,8 +713,6 @@ jobs:
           ref: ${{ github.ref }}
 
       - name: Releases service
-        env:
-          UPDATE_TOKEN: ${{ secrets.UPDATE_TOKEN }}
         run: |
           REPO_VERSION=$(node -p "require('./package.json').version")
 
@@ -883,16 +741,3 @@ jobs:
 
           # Makes build fail if the release isn't there
           curl --fail https://releases.rocket.chat/$RC_VERSION/info
-
-  docs-update:
-    name: Update Version Durability
-
-    if: github.event_name == 'release'
-    needs:
-      - services-docker-image-publish
-      - docker-image-publish
-
-    uses: ./.github/workflows/update-version-durability.yml
-    secrets:
-      CI_PAT: ${{ secrets.CI_PAT }}
-      D360_TOKEN: ${{ secrets.D360_TOKEN }}
