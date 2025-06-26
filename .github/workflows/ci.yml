@@ -495,7 +495,8 @@ jobs:
 
       - name: Install Tencent Cloud CLI
         run: |
-          curl -o /usr/local/bin/tencentcloud https://install.qcloud.com/cli_install.sh | sh
+          curl -sSL https://install.qcloud.com/cli_install.sh | sh
+          export PATH=$PATH:/usr/local/qcloudcli/bin
           tencentcloud configure set secret_id ${{ secrets.TENCENTCLOUD_SECRET_ID }}
           tencentcloud configure set secret_key ${{ secrets.TENCENTCLOUD_SECRET_KEY }}
           tencentcloud configure set region ${{ secrets.TENCENTCLOUD_REGION }}
