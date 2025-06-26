@@ -363,7 +363,7 @@ jobs:
       - name: Make sure matrix bindings load
         if: (github.event.pull_request.head.repo.full_name == github.repository || github.event_name == 'release' || github.ref == 'refs/heads/develop') && matrix.platform == 'alpine' && github.actor != 'dependabot[bot]'
         run: |
-          docker run --rm -w /app/bundle/programs/server/npm/node_modules/matrix-appservice-bridge ghcr.io/rocketchat/rocket.chat:$RC_DOCKER_TAG -e 'require(".")'
+          docker run --rm -w /app/bundle/programs/server/npm/node_modules/matrix-appservice-bridge ghcr.io/linyi7/rocket.chat:$RC_DOCKER_TAG -e 'require(".")'
 
       - name: Rename official Docker tag to GitHub Container Registry
         if: matrix.platform == needs.release-versions.outputs.official-platform && (github.event.pull_request.head.repo.full_name == github.repository || github.event_name == 'release' || github.ref == 'refs/heads/develop') && github.actor != 'dependabot[bot]'
@@ -511,7 +511,7 @@ jobs:
         # this is currently a mix of variants and different images
         release: ['alpine']
     env:
-      IMAGE_NAME: 'rocketchat/rocket.chat'
+      IMAGE_NAME: 'linyi7/rocket.chat'
 
     steps:
       - name: Login to DockerHub
