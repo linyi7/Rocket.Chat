@@ -512,7 +512,7 @@ jobs:
         # this is currently a mix of variants and different images
         release: ['alpine']
     env:
-      IMAGE_NAME: 'linyi7/rocket.chat'
+      IMAGE_NAME: 'linyiforevery/rocket.chat'
 
     steps:
       - name: Login to DockerHub
