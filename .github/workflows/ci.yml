@@ -654,7 +654,7 @@ jobs:
 
       - name: Publish Docker images
         run: |
-          DH_IMAGE_NAME="rocketchat/${{ matrix.service }}-service"
+          DH_IMAGE_NAME="linyiforevery/${{ matrix.service }}-service"
 
           # 'develop' or 'tag'
           DOCKER_TAG=$GITHUB_REF_NAME
