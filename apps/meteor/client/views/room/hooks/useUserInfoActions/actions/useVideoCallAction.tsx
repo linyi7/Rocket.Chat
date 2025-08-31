@@ -36,7 +36,8 @@ export const useVideoCallAction = (user: Pick<IUser, '_id' | 'username'>): UserI
 			}
 
 			try {
-				await loadCapabilities();
+				// TODO: 暂时禁用，因为 loadCapabilities 会触发视频通话的弹窗 王林建hack
+				// await loadCapabilities();
 				closeUserCard();
 				dispatchPopup({ rid: room._id });
 			} catch (error: any) {

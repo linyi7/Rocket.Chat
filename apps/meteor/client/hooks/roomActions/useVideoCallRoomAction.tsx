@@ -59,7 +59,8 @@ export const useVideoCallRoomAction = () => {
 		}
 
 		try {
-			await loadCapabilities();
+			// TODO: 暂时禁用，因为 loadCapabilities 会触发视频通话的弹窗 王林建hack
+			// await loadCapabilities();
 			dispatchPopup({ rid: room._id });
 		} catch (error: any) {
 			dispatchWarning(error.error);
@@ -73,7 +74,7 @@ export const useVideoCallRoomAction = () => {
 
 		return {
 			id: 'start-video-call',
-			title: 'Video_call',
+			title: '视频通话',
 			icon: 'video',
 			featured: true,
 			action: handleOpenVideoConf,
