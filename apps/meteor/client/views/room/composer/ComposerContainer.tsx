@@ -41,9 +41,10 @@ const ComposerContainer = ({ children, ...props }: ComposerMessageProps): ReactE
 
 	const [isAirGappedRestricted] = useAirGappedRestriction();
 
-	if (isAirGappedRestricted) {
-		return <ComposerAirGappedRestricted />;
-	}
+	//王林建hack修改
+	// if (isAirGappedRestricted) {
+	// 	return <ComposerAirGappedRestricted />;
+	// }
 
 	if (isOmnichannel) {
 		return <ComposerOmnichannel {...props} />;
